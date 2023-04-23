@@ -1,10 +1,10 @@
 import { isNotEmptyString } from '../utils/is'
-
+import {authkeyarray} from '../utils/config'
 
 // 改进了这个函数允许支持多个密码
 const auth = async (req, res, next) => {
   const AUTH_SECRET_KEY = process.env.AUTH_SECRET_KEY
-  let authkeyarray: string[] = ['tF4Zfmc0Jy', '7B8axJ8PF2', 'epBUUGwxZp', 'Ckx1BCgXdy', 'tDaBHX00ve', 'kK451PvQtE', 'Zcppu3MJ89', '4TOUiubaDH', 'ps_Ae5UxI5', 'uHcioX9FeT', 'qnZmmxQ722', 'EjdRUvIqeY', 'dS3mzL6gQB', 'kLKOCL1z36', '66PhQ22nOb', '3gDseJb8S1', 'ylUwKuSJSc', 'mL2v2bZF9K', 'RgWOwvyUhu', 'b59xdzuMdw', AUTH_SECRET_KEY]
+  authkeyarray.push(AUTH_SECRET_KEY)
   if (isNotEmptyString(AUTH_SECRET_KEY)) {
     try {
       const Authorization = req.header('Authorization')

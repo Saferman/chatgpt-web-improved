@@ -100,12 +100,14 @@ async function chatReplyProcess(options: RequestOptions) {
         options = { ...lastContext }
     }
 
+    // 发送请求的核心位置
     const response = await api.sendMessage(message, {
       ...options,
       onProgress: (partialResponse) => {
         process?.(partialResponse)
       },
     })
+
 
     return sendResponse({ type: 'Success', data: response })
   }
