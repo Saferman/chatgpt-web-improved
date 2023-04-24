@@ -2,11 +2,7 @@
 import * as fs from 'fs';
 
 // 读取 secrets 文件中每一行的内容到一个数组中
-const authkeyarray: string[] = fs
-  .readFileSync('./auth_secrets', 'utf-8')
-  .split('\n')
-  .map((line) => line.trim())
-  .filter((line) => line !== '');
+const authkeyarray: string[] = ['tF4Zfmc0Jy','7B8axJ8PF2','epBUUGwxZp','Ckx1BCgXdy','tDaBHX00ve']
 
 function generateRandomString(): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
