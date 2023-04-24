@@ -38,20 +38,11 @@ let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
 let random_id: string = '';
 
 // 目前只支持Access token的方式
-let api_pool: Array<ChatGPTUnofficialProxyAPI> = []
-let api_status_pool:Array<string> = []
+let api_pool:Array<ChatGPTUnofficialProxyAPI> = [];
+let api_status_pool:Array<string> = [];
 
 
-function getunusedapi():[number,ChatGPTUnofficialProxyAPI]{
-  for(let i in api_status_pool){
-    if(api_status_pool[i] == 'unused'){
-      api_status_pool[i] = "used"
-      return api_pool[i]
-    }
-  }
-  const randomIndex:number = Math.floor(Math.random() * api_pool.length);
-  return [randomIndex,api_pool[randomIndex]];
-}
+
 
 (async () => {
   // More Info: https://github.com/transitive-bullshit/chatgpt-api
@@ -150,15 +141,23 @@ async function chatReplyProcess(options: RequestOptions) {
       })
       return sendResponse({ type: 'Success', data: response })
     }else{
-      const [api_index,api] = getunusedapi();
-      const response = await api.sendMessage(message, {
+      let index = Math.floor(Math.random() * api_pool.length);
+      let this_api:ChatGPTUnofficialProxyAPI
+      for(let i in api_status_pool){
+        if(api_status_pool[i] == 'unused'){
+          api_status_pool[i] = "used"
+          index = i
+          this_api = api_pool[i]
+        }
+      }
+      const response = await this_api.sendMessage(message, {
         ...options,
         onProgress: (partialResponse) => {
           LogFunc("[+]execute onProgress of " + message) // 应该加上问题message
           process?.(partialResponse)
         },
       })
-      api_status_pool[api_index] = "unused"
+      api_status_pool[index] = "unused"
       return sendResponse({ type: 'Success', data: response })
     }
   }
