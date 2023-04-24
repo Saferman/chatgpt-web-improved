@@ -5,7 +5,7 @@ import { chatConfig, chatReplyProcess, currentModel } from './chatgpt'
 import { auth } from './middleware/auth'
 import { limiter } from './middleware/limiter'
 import { isNotEmptyString } from './utils/is'
-import {authkeyarray,LogFunc} from './utils/config'
+import {checkSecretString,LogFunc} from './utils/config'
 
 const app = express()
 const router = express.Router()
@@ -26,10 +26,12 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
   try {
     const { prompt, options = {}, systemMessage, temperature, top_p } = req.body as RequestProps
     let firstChunk = true
+    LogFunc("[+]Receive post request on /chat-process")
     await chatReplyProcess({
       message: prompt,
       lastContext: options,
       process: (chat: ChatMessage) => {
+        LogFunc("[+]res.write...")
         res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`)
         firstChunk = false
       },
@@ -73,16 +75,7 @@ router.post('/verify', async (req, res) => {
     const { token } = req.body as { token: string }
     if (!token)
       throw new Error('Secret key is empty')
-    // 修改为多个密码验证
-    authkeyarray.push(process.env.AUTH_SECRET_KEY)
-    LogFunc("/verify: authkeyarray length "+authkeyarray.length.toString())
-    let isValid: boolean = false
-    authkeyarray.forEach(function(str_key){
-      if(token ==str_key.trim()){
-        isValid = true
-      }
-    })
-    if(!isValid)throw new Error('密钥无效 | Secret key is invalid')
+    if(!checkSecretString(token))throw new Error('密钥无效 | Secret key is invalid')
     // if (process.env.AUTH_SECRET_KEY !== token)
       // throw new Error('密钥无效 | Secret key is invalid')
     res.send({ status: 'Success', message: 'Verify successfully', data: null })

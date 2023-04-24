@@ -84,13 +84,15 @@ let random_id: string = '';
   }
   random_id = generateRandomString();
   LogFunc("Trigger build api and apimodel and Random string: " + random_id)
+  // 通过验证我发现该环境这部分是server启动的时候只会执行一次的操作
 })()
 
 async function chatReplyProcess(options: RequestOptions) {
   const { message, lastContext, process, systemMessage, temperature, top_p } = options
   try {
     let options: SendMessageOptions = { timeoutMs }
-    LogFunc("Trigger catReplyProcess and Random string: " + random_id)
+    // LogFunc("Trigger catReplyProcess and Random string: " + random_id) 
+    // 验证发现不同客户端得到的这个random_id的值是相同的
     if (apiModel === 'ChatGPTAPI') {
       if (isNotEmptyString(systemMessage))
         options.systemMessage = systemMessage
@@ -105,12 +107,15 @@ async function chatReplyProcess(options: RequestOptions) {
     }
 
     // 发送请求的核心位置
+    LogFunc("[+]execute await api.sendMessage in chatReplyProcess")
     const response = await api.sendMessage(message, {
       ...options,
       onProgress: (partialResponse) => {
+        LogFunc("[+]execute onProgress")
         process?.(partialResponse)
       },
     })
+    LogFunc("[+]Before sendResponse")
     return sendResponse({ type: 'Success', data: response })
   }
   catch (error: any) {
