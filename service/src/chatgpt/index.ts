@@ -38,8 +38,8 @@ let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
 let random_id: string = '';
 
 // 目前只支持Access token的方式
-let api_pool: Array<ChatGPTUnofficialProxyAPI>
-let api_status_pool:Array<string>
+let api_pool: Array<ChatGPTUnofficialProxyAPI> = []
+let api_status_pool:Array<string> = []
 
 
 function getunusedapi():[number,ChatGPTUnofficialProxyAPI]{
