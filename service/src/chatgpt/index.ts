@@ -9,7 +9,7 @@ import { sendResponse } from '../utils'
 import { isNotEmptyString } from '../utils/is'
 import type { ApiModel, ChatContext, ChatGPTUnofficialProxyAPIOptions, ModelConfig } from '../types'
 import type { RequestOptions, SetProxyOptions, UsageResponse } from './types'
-import {LogFunc,generateRandomString} from '../utils/config'
+import {LogFunc,generateRandomString,getAccessToken} from '../utils/config'
 
 const { HttpsProxyAgent } = httpsProxyAgent
 
@@ -36,6 +36,22 @@ if (!isNotEmptyString(process.env.OPENAI_API_KEY) && !isNotEmptyString(process.e
 let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
 
 let random_id: string = '';
+
+// 目前只支持Access token的方式
+let api_pool: Array<ChatGPTUnofficialProxyAPI>
+let api_status_pool:Array<string>
+
+
+function getunusedapi():[number,ChatGPTUnofficialProxyAPI]{
+  for(let i in api_status_pool){
+    if(api_status_pool[i] == 'unused'){
+      api_status_pool[i] = "used"
+      return api_pool[i]
+    }
+  }
+  const randomIndex:number = Math.floor(Math.random() * api_pool.length);
+  return [randomIndex,api_pool[randomIndex]];
+}
 
 (async () => {
   // More Info: https://github.com/transitive-bullshit/chatgpt-api
@@ -70,17 +86,32 @@ let random_id: string = '';
     apiModel = 'ChatGPTAPI'
   }
   else {
-    const options: ChatGPTUnofficialProxyAPIOptions = {
-      accessToken: process.env.OPENAI_ACCESS_TOKEN,
-      apiReverseProxyUrl: isNotEmptyString(process.env.API_REVERSE_PROXY) ? process.env.API_REVERSE_PROXY : 'https://bypass.churchless.tech/api/conversation',
-      model,
-      debug: !disableDebug,
+    let token_array:Array<string> = getAccessToken()
+    for(let i in token_array){
+      const options: ChatGPTUnofficialProxyAPIOptions = {
+        accessToken: token_array[i],
+        apiReverseProxyUrl: isNotEmptyString(process.env.API_REVERSE_PROXY) ? process.env.API_REVERSE_PROXY : 'https://bypass.churchless.tech/api/conversation',
+        model,
+        debug: !disableDebug,
+      }
+      setupProxy(options)
+      api = new ChatGPTUnofficialProxyAPI({ ...options })
+      api_pool.push(api)
+      api_status_pool.push("unused")
     }
-
-    setupProxy(options)
-
-    api = new ChatGPTUnofficialProxyAPI({ ...options })
     apiModel = 'ChatGPTUnofficialProxyAPI'
+
+    // const options: ChatGPTUnofficialProxyAPIOptions = {
+    //   accessToken: process.env.OPENAI_ACCESS_TOKEN,
+    //   apiReverseProxyUrl: isNotEmptyString(process.env.API_REVERSE_PROXY) ? process.env.API_REVERSE_PROXY : 'https://bypass.churchless.tech/api/conversation',
+    //   model,
+    //   debug: !disableDebug,
+    // }
+
+    // setupProxy(options)
+
+    // api = new ChatGPTUnofficialProxyAPI({ ...options })
+    // apiModel = 'ChatGPTUnofficialProxyAPI'
   }
   random_id = generateRandomString();
   LogFunc("Trigger build api and apimodel and Random string: " + random_id)
@@ -105,18 +136,31 @@ async function chatReplyProcess(options: RequestOptions) {
       else
         options = { ...lastContext }
     }
-
     // 发送请求的核心位置
     LogFunc("[+]execute await api.sendMessage in chatReplyProcess")
-    const response = await api.sendMessage(message, {
-      ...options,
-      onProgress: (partialResponse) => {
-        LogFunc("[+]execute onProgress")
-        process?.(partialResponse)
-      },
-    })
-    LogFunc("[+]Before sendResponse")
-    return sendResponse({ type: 'Success', data: response })
+    // 在原版代码里下述apiModel两种代码的逻辑都采用的ChatGPTAPI的逻辑，我针对另一种模型进行了修改
+    if(apiModel == 'ChatGPTAPI'){
+      // 不同客户端阻塞的位置应该是这里的api，使用不同的api会不会解决
+      const response = await api.sendMessage(message, {
+        ...options,
+        onProgress: (partialResponse) => {
+          LogFunc("[+]execute onProgress of " + message) // 应该加上问题message
+          process?.(partialResponse)
+        },
+      })
+      return sendResponse({ type: 'Success', data: response })
+    }else{
+      const [api_index,api] = getunusedapi();
+      const response = await api.sendMessage(message, {
+        ...options,
+        onProgress: (partialResponse) => {
+          LogFunc("[+]execute onProgress of " + message) // 应该加上问题message
+          process?.(partialResponse)
+        },
+      })
+      api_status_pool[api_index] = "unused"
+      return sendResponse({ type: 'Success', data: response })
+    }
   }
   catch (error: any) {
     const code = error.statusCode

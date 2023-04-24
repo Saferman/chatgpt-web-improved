@@ -31,7 +31,7 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
       message: prompt,
       lastContext: options,
       process: (chat: ChatMessage) => {
-        LogFunc("[+]res.write...")
+        // LogFunc("[+]res.write...") // 实测在一次问答中会反复触发该函数
         res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`)
         firstChunk = false
       },
