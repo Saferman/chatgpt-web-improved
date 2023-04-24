@@ -8,10 +8,23 @@ const authkeyarray: string[] = fs
   .map((line) => line.trim())
   .filter((line) => line !== '');
 
-const tokenarray: string[] = fs
-  .readFileSync('./auth_tokens', 'utf-8')
-  .split('\n')
-  .map((line) => line.trim())
-  .filter((line) => line !== '');
+function generateRandomString(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
 
-export {authkeyarray,tokenarray};
+const LogFunc: (str: string) => void = (str: string) => {
+  fs.appendFileSync('./myrun.log', str + '\n');
+};
+
+// const tokenarray: string[] = fs
+//   .readFileSync('./auth_tokens', 'utf-8')
+//   .split('\n')
+//   .map((line) => line.trim())
+//   .filter((line) => line !== '');
+
+export {authkeyarray,LogFunc,generateRandomString};

@@ -5,6 +5,7 @@ import { chatConfig, chatReplyProcess, currentModel } from './chatgpt'
 import { auth } from './middleware/auth'
 import { limiter } from './middleware/limiter'
 import { isNotEmptyString } from './utils/is'
+import {authkeyarray,LogFunc} from './utils/config'
 
 const app = express()
 const router = express.Router()
@@ -66,15 +67,24 @@ router.post('/session', async (req, res) => {
   }
 })
 
+
 router.post('/verify', async (req, res) => {
   try {
     const { token } = req.body as { token: string }
     if (!token)
       throw new Error('Secret key is empty')
-
-    if (process.env.AUTH_SECRET_KEY !== token)
-      throw new Error('密钥无效 | Secret key is invalid')
-
+    // 修改为多个密码验证
+    authkeyarray.push(process.env.AUTH_SECRET_KEY)
+    LogFunc("/verify: authkeyarray length "+authkeyarray.length.toString())
+    let isValid: boolean = false
+    authkeyarray.forEach(function(str_key){
+      if(token ==str_key.trim()){
+        isValid = true
+      }
+    })
+    if(!isValid)throw new Error('密钥无效 | Secret key is invalid')
+    // if (process.env.AUTH_SECRET_KEY !== token)
+      // throw new Error('密钥无效 | Secret key is invalid')
     res.send({ status: 'Success', message: 'Verify successfully', data: null })
   }
   catch (error) {
@@ -87,3 +97,4 @@ app.use('/api', router)
 app.set('trust proxy', 1)
 
 app.listen(3002, () => globalThis.console.log('Server is running on port 3002'))
+

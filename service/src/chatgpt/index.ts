@@ -9,6 +9,7 @@ import { sendResponse } from '../utils'
 import { isNotEmptyString } from '../utils/is'
 import type { ApiModel, ChatContext, ChatGPTUnofficialProxyAPIOptions, ModelConfig } from '../types'
 import type { RequestOptions, SetProxyOptions, UsageResponse } from './types'
+import {LogFunc,generateRandomString} from '../utils/config'
 
 const { HttpsProxyAgent } = httpsProxyAgent
 
@@ -34,9 +35,10 @@ if (!isNotEmptyString(process.env.OPENAI_API_KEY) && !isNotEmptyString(process.e
 
 let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
 
+let random_id: string = '';
+
 (async () => {
   // More Info: https://github.com/transitive-bullshit/chatgpt-api
-
   if (isNotEmptyString(process.env.OPENAI_API_KEY)) {
     const OPENAI_API_BASE_URL = process.env.OPENAI_API_BASE_URL
 
@@ -80,13 +82,15 @@ let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
     api = new ChatGPTUnofficialProxyAPI({ ...options })
     apiModel = 'ChatGPTUnofficialProxyAPI'
   }
+  random_id = generateRandomString();
+  LogFunc("Trigger build api and apimodel and Random string: " + random_id)
 })()
 
 async function chatReplyProcess(options: RequestOptions) {
   const { message, lastContext, process, systemMessage, temperature, top_p } = options
   try {
     let options: SendMessageOptions = { timeoutMs }
-
+    LogFunc("Trigger catReplyProcess and Random string: " + random_id)
     if (apiModel === 'ChatGPTAPI') {
       if (isNotEmptyString(systemMessage))
         options.systemMessage = systemMessage
@@ -107,8 +111,6 @@ async function chatReplyProcess(options: RequestOptions) {
         process?.(partialResponse)
       },
     })
-
-
     return sendResponse({ type: 'Success', data: response })
   }
   catch (error: any) {
