@@ -141,9 +141,9 @@ async function chatReplyProcess(options: RequestOptions) {
       })
       return sendResponse({ type: 'Success', data: response })
     }else{
-      let index = Math.floor(Math.random() * api_pool.length);
-      let this_api:ChatGPTUnofficialProxyAPI
-      for(let i in api_status_pool){
+      let index = Math.floor(Math.random() * api_pool.length)
+      let this_api:ChatGPTUnofficialProxyAPI = api_pool[index]
+      for(let i =0;i<api_status_pool.length;i++){
         if(api_status_pool[i] == 'unused'){
           api_status_pool[i] = "used"
           index = i
