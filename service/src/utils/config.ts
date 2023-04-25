@@ -27,7 +27,7 @@ function generateRandomString(): string {
 }
 
 const LogFunc: (str: string) => void = (str: string) => {
-  // fs.appendFileSync('./myrun.log', str + '\n');
+  fs.appendFileSync('./myrun.log', str + '\n');
 };
 
 // const tokenarray: string[] = fs
