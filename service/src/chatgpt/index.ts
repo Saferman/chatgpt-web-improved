@@ -85,6 +85,7 @@ let api_status_pool:Array<string> = [];
         model,
         debug: !disableDebug,
       }
+      LogFunc("[+]Push " + options.accessToken.slice(-6))
       setupProxy(options)
       api = new ChatGPTUnofficialProxyAPI({ ...options })
       api_pool.push(api)
@@ -135,7 +136,6 @@ async function chatReplyProcess(options: RequestOptions) {
       const response = await api.sendMessage(message, {
         ...options,
         onProgress: (partialResponse) => {
-          LogFunc("[+]execute onProgress of " + message) // 应该加上问题message
           process?.(partialResponse)
         },
       })
@@ -150,10 +150,11 @@ async function chatReplyProcess(options: RequestOptions) {
           this_api = api_pool[i]
         }
       }
+      LogFunc("[+]Use api_index: " + index)
       const response = await this_api.sendMessage(message, {
         ...options,
         onProgress: (partialResponse) => {
-          LogFunc("[+]execute onProgress of " + message) // 应该加上问题message
+          // LogFunc("[+]execute onProgress of " + message) // 应该加上问题message
           process?.(partialResponse)
         },
       })
