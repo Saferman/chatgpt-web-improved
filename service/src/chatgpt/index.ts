@@ -148,6 +148,7 @@ async function chatReplyProcess(options: RequestOptions) {
           api_status_pool[i] = "used"
           index = i
           this_api = api_pool[i]
+          break;  
         }
       }
       LogFunc("[+]Use api_index: " + index + " , all status: "+api_status_pool.join("_"))
