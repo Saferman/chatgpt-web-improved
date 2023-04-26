@@ -22,7 +22,6 @@ app.all('*', (_, res, next) => {
 
 router.post('/chat-process', [auth, limiter], async (req, res) => {
   res.setHeader('Content-type', 'application/octet-stream')
-  
   try {
     const { prompt, options = {}, systemMessage, temperature, top_p } = req.body as RequestProps
     let firstChunk = true
@@ -32,6 +31,7 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
       lastContext: options,
       process: (chat: ChatMessage) => {
         // LogFunc("[+]res.write...") // 实测在一次问答中会反复触发该函数
+        // 阻塞并发回复的核心
         res.write(firstChunk ? JSON.stringify(chat) : `\n${JSON.stringify(chat)}`)
         firstChunk = false
       },
@@ -45,6 +45,7 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
     res.write(JSON.stringify(error))
   }
   finally {
+    LogFunc("[+ Find close point]res.end")
     res.end()
   }
 })

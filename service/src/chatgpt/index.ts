@@ -159,6 +159,7 @@ async function chatReplyProcess(options: RequestOptions) {
           process?.(partialResponse)
         },
       })
+      // 随机的也会将其设置为unused
       api_status_pool[index] = "unused"
       // 测试该sendResponse是否是影响服务端不能并发响应用户的原因
       LogFunc("[+]set api_index: " + index + " unused before response")
