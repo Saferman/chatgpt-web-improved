@@ -150,7 +150,7 @@ async function chatReplyProcess(options: RequestOptions) {
           this_api = api_pool[i]
         }
       }
-      LogFunc("[+]Use api_index: " + index)
+      LogFunc("[+]Use api_index: " + index + " , all status: "+api_status_pool.join("_"))
       const response = await this_api.sendMessage(message, {
         ...options,
         onProgress: (partialResponse) => {
@@ -159,6 +159,8 @@ async function chatReplyProcess(options: RequestOptions) {
         },
       })
       api_status_pool[index] = "unused"
+      // 测试该sendResponse是否是影响服务端不能并发响应用户的原因
+      LogFunc("[+]set api_index: " + index + " unused before response")
       return sendResponse({ type: 'Success', data: response })
     }
   }

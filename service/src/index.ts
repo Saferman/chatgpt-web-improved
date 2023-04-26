@@ -41,6 +41,7 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
     })
   }
   catch (error) {
+    LogFunc("[-]res.write: "+JSON.stringify(error))
     res.write(JSON.stringify(error))
   }
   finally {

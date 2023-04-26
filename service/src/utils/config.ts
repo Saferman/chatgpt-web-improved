@@ -26,6 +26,7 @@ function generateRandomString(): string {
   return result;
 }
 
+// ChatGPT error 404: {"errorMessage":"Conversation not found"}
 const LogFunc: (str: string) => void = (str: string) => {
   fs.appendFileSync('./myrun.log', str + '\n');
 };
