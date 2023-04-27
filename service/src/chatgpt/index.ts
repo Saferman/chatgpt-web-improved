@@ -147,7 +147,16 @@ async function chatReplyProcess(options: RequestOptions) {
         if(api_status_pool[i] == 0){
           api_status_pool[i] += 1
           index = i
-          this_api = api_pool[i]
+          // this_api = api_pool[i]
+          //实例化新的类
+          const options: ChatGPTUnofficialProxyAPIOptions = {
+            accessToken: getAccessToken()[i],
+            apiReverseProxyUrl: isNotEmptyString(process.env.API_REVERSE_PROXY) ? process.env.API_REVERSE_PROXY : 'https://bypass.churchless.tech/api/conversation',
+            model,
+            debug: !disableDebug,
+          }
+          setupProxy(options)
+          this_api = new ChatGPTUnofficialProxyAPI({ ...options })
           break;  
         }
       }
@@ -174,7 +183,7 @@ async function chatReplyProcess(options: RequestOptions) {
   finally{
     // 在try或者catch或者return前会执行该操作
     api_status_pool[index] -= 1
-    LogFunc("[+]set api_index -1: " + index + " value "+ api_status_pool[index].toString() +" before response")
+    LogFunc("[+]make api_index -1: " + index + " value "+ api_status_pool[index].toString() +" before response")
   }
 }
 
