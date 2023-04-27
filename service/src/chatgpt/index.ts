@@ -39,7 +39,8 @@ let random_id: string = '';
 
 // 目前只支持Access token的方式
 let api_pool:Array<ChatGPTUnofficialProxyAPI> = [];
-let api_status_pool:Array<string> = [];
+// let api_status_pool:Array<string> = [];
+let api_status_pool:Array<number> = []  //保存用户数量
 
 
 
@@ -89,7 +90,7 @@ let api_status_pool:Array<string> = [];
       setupProxy(options)
       api = new ChatGPTUnofficialProxyAPI({ ...options })
       api_pool.push(api)
-      api_status_pool.push("unused")
+      api_status_pool.push(0)
     }
     apiModel = 'ChatGPTUnofficialProxyAPI'
 
@@ -112,6 +113,8 @@ let api_status_pool:Array<string> = [];
 
 async function chatReplyProcess(options: RequestOptions) {
   const { message, lastContext, process, systemMessage, temperature, top_p } = options
+  let index = Math.floor(Math.random() * api_pool.length)
+  let this_api:ChatGPTUnofficialProxyAPI = api_pool[index]
   try {
     let options: SendMessageOptions = { timeoutMs }
     // LogFunc("Trigger catReplyProcess and Random string: " + random_id) 
@@ -141,11 +144,9 @@ async function chatReplyProcess(options: RequestOptions) {
       })
       return sendResponse({ type: 'Success', data: response })
     }else{
-      let index = Math.floor(Math.random() * api_pool.length)
-      let this_api:ChatGPTUnofficialProxyAPI = api_pool[index]
       for(let i =0;i<api_status_pool.length;i++){
-        if(api_status_pool[i] == 'unused'){
-          api_status_pool[i] = "used"
+        if(api_status_pool[i] == 0){
+          api_status_pool[i] += 1
           index = i
           this_api = api_pool[i]
           break;  
@@ -159,10 +160,8 @@ async function chatReplyProcess(options: RequestOptions) {
           process?.(partialResponse)
         },
       })
-      // 随机的也会将其设置为unused
-      api_status_pool[index] = "unused"
-      // 测试该sendResponse是否是影响服务端不能并发响应用户的原因
-      LogFunc("[+]set api_index: " + index + " unused before response")
+      // 这个点不是程序必须经过的点，因为下面有个catch err
+      // 测试该sendResponse是否是影响服务端不能并发响应用户的原因，答案：不是
       return sendResponse({ type: 'Success', data: response })
     }
   }
@@ -172,6 +171,11 @@ async function chatReplyProcess(options: RequestOptions) {
     if (Reflect.has(ErrorCodeMessage, code))
       return sendResponse({ type: 'Fail', message: ErrorCodeMessage[code] })
     return sendResponse({ type: 'Fail', message: error.message ?? 'Please check the back-end console' })
+  }
+  finally{
+    // 在try或者catch或者return前会执行该操作
+    api_status_pool[index] -= 1
+    LogFunc("[+]set api_index -1: " + index + " value "+ api_status_pool[index].toString() +" before response")
   }
 }
 

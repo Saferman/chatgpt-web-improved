@@ -45,7 +45,8 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
     res.write(JSON.stringify(error))
   }
   finally {
-    LogFunc("[+ Find close point]res.end")
+    //实际测试，无论是用户关闭页面还是stop response，一段时间后都会执行该位置的操作
+    // LogFunc("[+ Find close point]res.end")
     res.end()
   }
 })
