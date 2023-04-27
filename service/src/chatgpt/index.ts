@@ -40,10 +40,9 @@ let random_id: string = '';
 // 目前只支持Access token的方式
 let api_pool:Array<ChatGPTUnofficialProxyAPI> = [];
 // let api_status_pool:Array<string> = [];
-let api_status_pool:Array<number> = []  //保存用户数量
+let api_status_pool:Array<number> = [];  //保存用户数量
 
-
-
+//必须加分号，不然和下面混淆？
 
 (async () => {
   // More Info: https://github.com/transitive-bullshit/chatgpt-api
