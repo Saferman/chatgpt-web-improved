@@ -36,6 +36,8 @@ if (!isNotEmptyString(process.env.OPENAI_API_KEY) && !isNotEmptyString(process.e
 let api: ChatGPTAPI | ChatGPTUnofficialProxyAPI
 
 let random_id: string = '';
+let api_reverse_proxy:string;
+
 
 // 目前只支持Access token的方式
 let api_pool:Array<ChatGPTUnofficialProxyAPI> = [];
@@ -77,11 +79,12 @@ let api_status_pool:Array<number> = [];  //保存用户数量
     apiModel = 'ChatGPTAPI'
   }
   else {
+    api_reverse_proxy = isNotEmptyString(process.env.API_REVERSE_PROXY) ? process.env.API_REVERSE_PROXY : 'https://bypass.churchless.tech/api/conversation'
     let token_array:Array<string> = getAccessToken()
     for(let i in token_array){
       const options: ChatGPTUnofficialProxyAPIOptions = {
         accessToken: token_array[i],
-        apiReverseProxyUrl: isNotEmptyString(process.env.API_REVERSE_PROXY) ? process.env.API_REVERSE_PROXY : 'https://bypass.churchless.tech/api/conversation',
+        apiReverseProxyUrl: api_reverse_proxy,
         model,
         debug: !disableDebug,
       }
@@ -151,7 +154,7 @@ async function chatReplyProcess(options: RequestOptions) {
           //实例化新的类
           const options: ChatGPTUnofficialProxyAPIOptions = {
             accessToken: getAccessToken()[i],
-            apiReverseProxyUrl: isNotEmptyString(process.env.API_REVERSE_PROXY) ? process.env.API_REVERSE_PROXY : 'https://bypass.churchless.tech/api/conversation',
+            apiReverseProxyUrl: api_reverse_proxy,
             model,
             debug: !disableDebug,
           }
